@@ -1,50 +1,61 @@
 # Lenker App
 
-Desktop VPN client for Lenker providers.
+Cross-platform desktop VPN client for the [Lenker](https://github.com/lenkerhq/lenker_panel) ecosystem. Built with Flutter.
 
 ## Status
 
-**Stage C1.1: Account auth foundation.** The app has real consumer account
-registration/sign-in connected to the panel-api backend, keeps the provider
-handoff path as an invite-token fallback, displays subscription info and
-available regions, but does not yet connect to a VPN.
+**Stage C1.1 — Account auth foundation.**
 
-The VPN engine (sing-box integration) is planned for Stage C2.
+The app currently:
+- Registers and signs in consumer accounts against the Lenker `panel-api` backend
+- Keeps provider handoff (invite token) as a fallback path
+- Displays subscription info and available regions
+- Stores tokens locally via platform-appropriate storage
+
+The VPN tunnel is **not yet connected** — the connect button is a placeholder until Stage C2 (sing-box engine integration).
+
+## Ecosystem
+
+| Repository | Role |
+|---|---|
+| [`lenker_panel`](https://github.com/lenkerhq/lenker_panel) | Backend control plane, node agent, web admin, migrations, deployment |
+| `lenker_app` (this repo) | End-user desktop/mobile client |
 
 ## Platforms
 
-- Linux Desktop
-- macOS Desktop
+| Platform | Status |
+|---|---|
+| Linux Desktop | ✅ supported |
+| macOS Desktop | ✅ supported |
+| Windows Desktop | planned |
+| Android | planned |
+| iOS | post-MVP |
+
+## Quick Start
+
+```sh
+flutter pub get
+flutter run -d macos   # or -d linux
+```
+
+Default API: `https://n8n.tayca.store/panel-api`
+
+Custom API:
+```sh
+flutter run -d macos --dart-define=LENKER_ACCOUNT_API_URL=https://your-api.example.com
+```
 
 ## Prerequisites
 
 - Flutter SDK 3.2+
-- Linux: `libsecret-1-dev`, `libjsoncpp-dev` (for flutter_secure_storage)
-- macOS: Xcode
+- Linux: `libsecret-1-dev`, `libjsoncpp-dev`
+- macOS: Xcode 14+
 
-## Run
-
-```sh
-flutter pub get
-flutter run -d linux
-flutter run -d macos
-```
-
-Account registration/sign-in defaults to the current Lenker dev API:
-
-```text
-https://n8n.tayca.store/panel-api
-```
-
-To point account registration/sign-in at another deployed Lenker API:
+## Build & Test
 
 ```sh
-flutter run -d macos --dart-define=LENKER_ACCOUNT_API_URL=https://api.example.com
-```
-
-## Build
-
-```sh
+flutter analyze
+flutter test
 flutter build linux --release
 flutter build macos --release
 ```
@@ -53,32 +64,46 @@ flutter build macos --release
 
 ```
 lib/
-├── main.dart              # Entry point, window setup, providers
-├── app.dart               # MaterialApp, routing, theme
+├── main.dart                    # Entry point, providers, window setup
+├── app.dart                     # MaterialApp, routing, theme
 ├── models/
-│   ├── subscription.dart  # SubscriptionAccess, AccessEntry, RegionNode
+│   ├── subscription.dart        # SubscriptionAccess, AccessEntry, RegionNode
 │   └── connection_state.dart
 ├── screens/
-│   ├── onboarding_screen.dart  # Account sign-in/register + invite token fallback
-│   ├── home_screen.dart        # Account-only state or subscription info
-│   └── diagnostics_screen.dart # Debug info, logout
+│   ├── onboarding_screen.dart   # Sign-in/register + invite-token fallback
+│   ├── home_screen.dart         # Account state or subscription view
+│   └── diagnostics_screen.dart  # Debug info, logout
 └── services/
-    ├── api_client.dart          # HTTP client for panel-api (accounts + handoff)
-    ├── account_service.dart     # Consumer account session storage
-    ├── auth_service.dart        # Subscription access token storage
-    └── subscription_service.dart # Subscription state
+    ├── api_client.dart          # HTTP client (accounts + handoff)
+    ├── account_service.dart     # Consumer account session
+    ├── auth_service.dart        # Subscription access token
+    ├── subscription_service.dart # Subscription state + refresh
+    └── secure_kv_store.dart     # Cross-platform secret storage
 ```
 
-## Flow
+## Local Secret Storage
 
-1. User sees account sign-in / account creation as the primary entry point.
-2. App calls `POST /api/v1/accounts/register` or `POST /api/v1/accounts/login`.
-3. Account session token is stored securely (keychain/keyring), separate from subscription access.
-4. After login, app shows home state. If no subscription, user can add one via invite token.
-5. Invite token fallback: `POST /api/v1/client/handoff/claim` exchanges invite for access token.
-6. Access token is stored securely. App fetches subscription access info.
-7. Connect button is disabled until VPN engine is implemented (Stage C2).
+Tokens are stored via `SecureKvStore` abstraction:
+
+- **Linux/Windows/Android/iOS** — `flutter_secure_storage` (Keychain/Keystore/Secret Service)
+- **macOS** — JSON file in `getApplicationSupportDirectory()` (Keychain requires Apple Developer Team signing; ad-hoc builds fail with `-34018`)
+- **Tests** — `SecureKvStore.inMemory()`
+
+## Roadmap
+
+| Stage | Goal | Status |
+|---|---|---|
+| C1 | Desktop shell, onboarding, handoff, subscription view | ✅ |
+| C1.1 | Consumer account auth (register/login/session) | ✅ |
+| C2 | sing-box VPN engine: process supervision, TUN, connect/disconnect | next |
+| C3 | macOS VPN path (privileged helper / NetworkExtension) | planned |
+| C4 | Polish: traffic stats, reconnect, branding | planned |
+| C5 | Android client (VpnService) | planned |
+| P0 | Provider Mode shell | planned |
+| A1/A2 | App-driven self-host VPS installer | planned |
+
+Out of MVP: multi-protocol UI, marketplace, billing, kill switch, split tunneling.
 
 ## License
 
-AGPL-3.0-only (same as Lenker core).
+AGPL-3.0-only
