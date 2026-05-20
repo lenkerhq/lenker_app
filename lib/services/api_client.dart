@@ -1,6 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+/// Default Lenker account API base URL.
+///
+/// Override for a deployed panel/API with:
+/// `flutter run -d macos --dart-define=LENKER_ACCOUNT_API_URL=https://api.example.com`
+const defaultAccountApiUrl = String.fromEnvironment(
+  'LENKER_ACCOUNT_API_URL',
+  defaultValue: 'http://localhost:8080',
+);
+
 class ApiException implements Exception {
   final int statusCode;
   final String code;
@@ -19,10 +28,66 @@ class HandoffResult {
   HandoffResult({required this.accessToken, required this.subscriptionId});
 }
 
+class AccountAuthResult {
+  final String token;
+  final String accountId;
+  final String email;
+
+  AccountAuthResult({required this.token, required this.accountId, required this.email});
+}
+
 class ApiClient {
   final http.Client _client;
+  final String accountApiUrl;
 
-  ApiClient([http.Client? client]) : _client = client ?? http.Client();
+  ApiClient([http.Client? client, String? accountApiUrl])
+      : _client = client ?? http.Client(),
+        accountApiUrl = accountApiUrl ?? defaultAccountApiUrl;
+
+  Future<AccountAuthResult> register(String email, String password) async {
+    final uri = Uri.parse('$accountApiUrl/api/v1/accounts/register');
+    final response = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    final body = _parseResponse(response);
+    final data = body['data'] as Map<String, dynamic>;
+    final account = data['account'] as Map<String, dynamic>;
+    final session = data['session'] as Map<String, dynamic>;
+    return AccountAuthResult(
+      token: session['token'] as String,
+      accountId: account['id'] as String,
+      email: account['email'] as String,
+    );
+  }
+
+  Future<AccountAuthResult> login(String email, String password) async {
+    final uri = Uri.parse('$accountApiUrl/api/v1/accounts/login');
+    final response = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    final body = _parseResponse(response);
+    final data = body['data'] as Map<String, dynamic>;
+    final account = data['account'] as Map<String, dynamic>;
+    final session = data['session'] as Map<String, dynamic>;
+    return AccountAuthResult(
+      token: session['token'] as String,
+      accountId: account['id'] as String,
+      email: account['email'] as String,
+    );
+  }
+
+  Future<void> logout(String token) async {
+    final uri = Uri.parse('$accountApiUrl/api/v1/accounts/logout');
+    final response = await _client.post(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    _parseResponse(response);
+  }
 
   Future<HandoffResult> claimHandoff(String panelUrl, String inviteToken) async {
     final uri = Uri.parse('$panelUrl/api/v1/client/handoff/claim');

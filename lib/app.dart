@@ -36,7 +36,7 @@ class LenkerApp extends StatelessWidget {
         backgroundColor: Color(0xFF162233),
         elevation: 0,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: Color(0xFF162233),
         elevation: 0,
       ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
 import 'services/api_client.dart';
+import 'services/account_service.dart';
 import 'services/auth_service.dart';
 import 'services/subscription_service.dart';
 
@@ -17,17 +18,23 @@ void main() async {
   final authService = AuthService();
   await authService.load();
 
+  final accountService = AccountService();
+  await accountService.load();
+
   final apiClient = ApiClient();
   final subscriptionService = SubscriptionService(apiClient, authService);
+
+  final isAuthenticated = accountService.isLoggedIn || authService.isAuthenticated;
 
   runApp(
     MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<AuthService>.value(value: authService),
+        Provider<AccountService>.value(value: accountService),
         ChangeNotifierProvider<SubscriptionService>.value(value: subscriptionService),
       ],
-      child: LenkerApp(isAuthenticated: authService.isAuthenticated),
+      child: LenkerApp(isAuthenticated: isAuthenticated),
     ),
   );
 }
