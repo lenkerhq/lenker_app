@@ -1,0 +1,27 @@
+# Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+*.xcworkspace
+
+# Linux
+linux/flutter/ephemeral/
+
+# Misc
+*.swp
+*.swo
+.DS_Store
