@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 /// `flutter run -d macos --dart-define=LENKER_ACCOUNT_API_URL=https://api.example.com`
 const defaultAccountApiUrl = String.fromEnvironment(
   'LENKER_ACCOUNT_API_URL',
-  defaultValue: 'http://localhost:8080',
+  defaultValue: 'https://n8n.tayca.store/panel-api',
 );
 
 class ApiException implements Exception {

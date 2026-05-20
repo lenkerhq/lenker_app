@@ -30,7 +30,13 @@ flutter run -d linux
 flutter run -d macos
 ```
 
-To point account registration/sign-in at a deployed Lenker API:
+Account registration/sign-in defaults to the current Lenker dev API:
+
+```text
+https://n8n.tayca.store/panel-api
+```
+
+To point account registration/sign-in at another deployed Lenker API:
 
 ```sh
 flutter run -d macos --dart-define=LENKER_ACCOUNT_API_URL=https://api.example.com
