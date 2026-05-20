@@ -1,4 +1,4 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'secure_kv_store.dart';
 
 /// Manages consumer account session (separate from subscription access token).
 class AccountService {
@@ -6,14 +6,13 @@ class AccountService {
   static const _keyAccountEmail = 'lenker_account_email';
   static const _keyAccountId = 'lenker_account_id';
 
-  final FlutterSecureStorage _storage;
+  final SecureKvStore _storage;
 
   String? _token;
   String? _email;
   String? _accountId;
 
-  AccountService([FlutterSecureStorage? storage])
-      : _storage = storage ?? const FlutterSecureStorage();
+  AccountService(this._storage);
 
   bool get isLoggedIn => _token != null;
   String? get token => _token;
@@ -21,9 +20,9 @@ class AccountService {
   String? get accountId => _accountId;
 
   Future<void> load() async {
-    _token = await _storage.read(key: _keyAccountToken);
-    _email = await _storage.read(key: _keyAccountEmail);
-    _accountId = await _storage.read(key: _keyAccountId);
+    _token = await _storage.read(_keyAccountToken);
+    _email = await _storage.read(_keyAccountEmail);
+    _accountId = await _storage.read(_keyAccountId);
   }
 
   Future<void> save({
@@ -34,17 +33,17 @@ class AccountService {
     _token = token;
     _email = email;
     _accountId = accountId;
-    await _storage.write(key: _keyAccountToken, value: token);
-    await _storage.write(key: _keyAccountEmail, value: email);
-    await _storage.write(key: _keyAccountId, value: accountId);
+    await _storage.write(_keyAccountToken, token);
+    await _storage.write(_keyAccountEmail, email);
+    await _storage.write(_keyAccountId, accountId);
   }
 
   Future<void> clear() async {
     _token = null;
     _email = null;
     _accountId = null;
-    await _storage.delete(key: _keyAccountToken);
-    await _storage.delete(key: _keyAccountEmail);
-    await _storage.delete(key: _keyAccountId);
+    await _storage.delete(_keyAccountToken);
+    await _storage.delete(_keyAccountEmail);
+    await _storage.delete(_keyAccountId);
   }
 }

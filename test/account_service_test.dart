@@ -1,20 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lenker_app/services/account_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lenker_app/services/secure_kv_store.dart';
 
 void main() {
   group('AccountService', () {
     test('isLoggedIn is false initially', () {
-      FlutterSecureStorage.setMockInitialValues({});
-      final service = AccountService();
+      final service = AccountService(SecureKvStore.inMemory());
       expect(service.isLoggedIn, isFalse);
       expect(service.token, isNull);
       expect(service.email, isNull);
     });
 
     test('save and read back values', () async {
-      FlutterSecureStorage.setMockInitialValues({});
-      final service = AccountService();
+      final service = AccountService(SecureKvStore.inMemory());
 
       await service.save(
         token: 'test-token',
@@ -29,8 +27,7 @@ void main() {
     });
 
     test('clear removes all values', () async {
-      FlutterSecureStorage.setMockInitialValues({});
-      final service = AccountService();
+      final service = AccountService(SecureKvStore.inMemory());
 
       await service.save(
         token: 'test-token',
@@ -45,12 +42,13 @@ void main() {
     });
 
     test('load reads from storage', () async {
-      FlutterSecureStorage.setMockInitialValues({
-        'lenker_account_token': 'stored-token',
-        'lenker_account_email': 'stored@test.com',
-        'lenker_account_id': 'acc-456',
-      });
-      final service = AccountService();
+      final service = AccountService(
+        SecureKvStore.inMemory({
+          'lenker_account_token': 'stored-token',
+          'lenker_account_email': 'stored@test.com',
+          'lenker_account_id': 'acc-456',
+        }),
+      );
       await service.load();
 
       expect(service.isLoggedIn, isTrue);

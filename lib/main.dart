@@ -5,6 +5,7 @@ import 'app.dart';
 import 'services/api_client.dart';
 import 'services/account_service.dart';
 import 'services/auth_service.dart';
+import 'services/secure_kv_store.dart';
 import 'services/subscription_service.dart';
 
 void main() async {
@@ -15,10 +16,12 @@ void main() async {
   await windowManager.setMinimumSize(const Size(400, 600));
   await windowManager.setSize(const Size(480, 720));
 
-  final authService = AuthService();
+  final storage = await SecureKvStore.create();
+
+  final authService = AuthService(storage);
   await authService.load();
 
-  final accountService = AccountService();
+  final accountService = AccountService(storage);
   await accountService.load();
 
   final apiClient = ApiClient();

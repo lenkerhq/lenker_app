@@ -70,7 +70,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       Navigator.of(context).pushReplacementNamed('/home');
     } on ApiException catch (e) {
       setState(() => _accountError = e.toString());
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Account submit error: $e');
       setState(() => _accountError = 'Connection failed. Please try again.');
     } finally {
       if (mounted) setState(() => _accountLoading = false);

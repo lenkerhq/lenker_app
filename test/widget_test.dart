@@ -4,13 +4,15 @@ import 'package:lenker_app/app.dart';
 import 'package:lenker_app/services/account_service.dart';
 import 'package:lenker_app/services/api_client.dart';
 import 'package:lenker_app/services/auth_service.dart';
+import 'package:lenker_app/services/secure_kv_store.dart';
 import 'package:lenker_app/services/subscription_service.dart';
 import 'package:provider/provider.dart';
 
 Widget _buildApp() {
-  final authService = AuthService();
+  final storage = SecureKvStore.inMemory();
+  final authService = AuthService(storage);
   final apiClient = ApiClient();
-  final accountService = AccountService();
+  final accountService = AccountService(storage);
   return MultiProvider(
     providers: [
       Provider<ApiClient>.value(value: apiClient),
