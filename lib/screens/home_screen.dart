@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/subscription.dart';
+import '../models/connection_state.dart';
 import '../services/account_service.dart';
 import '../services/auth_service.dart';
 import '../services/subscription_service.dart';
+import '../services/vpn_engine.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,20 +130,43 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: Theme.of(context).textTheme.bodySmall),
           ],
           const SizedBox(height: 32),
-          const SizedBox(
-            height: 56,
-            child: FilledButton(
-              onPressed: null,
-              child: Text('Connect (VPN engine coming soon)'),
-            ),
-          ),
+          _connectButton(context, selectedEntry),
           const SizedBox(height: 16),
+          Consumer<VpnEngine>(builder: (context, vpn, _) {
+            if (vpn.lastError != null) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(vpn.lastError!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           if (sub.error != null)
             Text(sub.error!, style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
           TextButton(onPressed: sub.refresh, child: const Text('Refresh subscription')),
         ],
       ),
     );
+  }
+
+  Widget _connectButton(BuildContext context, AccessEntry? entry) {
+    return Consumer<VpnEngine>(builder: (context, vpn, _) {
+      final isConnected = vpn.state == AppConnectionState.connected;
+      final isConnecting = vpn.state == AppConnectionState.connecting;
+
+      return SizedBox(
+        height: 56,
+        child: FilledButton(
+          onPressed: entry == null || isConnecting
+              ? null
+              : () => isConnected ? vpn.disconnect() : vpn.connect(entry),
+          child: isConnecting
+              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : Text(isConnected ? 'Disconnect' : 'Connect'),
+        ),
+      );
+    });
   }
 
   Widget _infoCard(BuildContext context, SubscriptionAccess access) {

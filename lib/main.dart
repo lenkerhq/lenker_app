@@ -7,6 +7,7 @@ import 'services/account_service.dart';
 import 'services/auth_service.dart';
 import 'services/secure_kv_store.dart';
 import 'services/subscription_service.dart';
+import 'services/vpn_engine.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,7 @@ void main() async {
         Provider<AuthService>.value(value: authService),
         Provider<AccountService>.value(value: accountService),
         ChangeNotifierProvider<SubscriptionService>.value(value: subscriptionService),
+        ChangeNotifierProvider<VpnEngine>(create: (_) => VpnEngine()),
       ],
       child: LenkerApp(isAuthenticated: isAuthenticated),
     ),
